@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        text-align: center;
+        background: rgb(48, 30, 103);
+        background: linear-gradient(
+          90deg,
+          rgba(48, 30, 103, 1) 0%,
+          rgba(182, 234, 218, 1) 100%
+        );
+        color: whitesmoke;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      li {
+        background-color: #fff;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+
+      button {
+        background-color: rgb(48, 30, 103);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+
+      #iconeLixeira {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: white;
+        cursor: pointer;
+      }
+
+      .confirmacao-restauracao {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fefefe;
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lixeira</h1>
+    <ul id="listaLixeira"></ul>
+    <h1>Itens restaurados</h1>
+    <div id="iconeLixeira" onclick="voltarParaTarefas()">
+      <button>Voltar para Tarefas</button>
+    </div>
+
+    <div id="confirmacaoRestauracao" class="confirmacao-restauracao">
+      <p>Deseja realmente restaurar esta tarefa?</p>
+      <button onclick="confirmarRestauracao()">Sim</button>
+      <button onclick="cancelarRestauracao()">Cancelar</button>
+    </div>
+
+    <script>
+      let tarefas = [];
+      let tarefaParaRestaurar = null;
+
+      function restaurarTarefa(id) {
+        tarefaParaRestaurar = id;
+        const modal = document.getElementById("confirmacaoRestauracao");
+        modal.style.display = "block";
+      }
+
+      function confirmarRestauracao() {
+        if (tarefaParaRestaurar !== null) {
+          const index = tarefas.findIndex(
+            (tarefa) => tarefa.id === tarefaParaRestaurar
+          );
+          if (index !== -1) {
+            tarefas[index].naLixeira = false;
+            exibirLixeira();
+          }
+        }
+        cancelarRestauracao();
+      }
+
+      function cancelarRestauracao() {
+        const modal = document.getElementById("confirmacaoRestauracao");
+        modal.style.display = "none";
+        tarefaParaRestaurar = null;
+      }
+
+      function exibirLixeira() {
+        const listaLixeira = document.getElementById("listaLixeira");
+        listaLixeira.innerHTML = "";
+
+        const tarefasNaLixeira = tarefas.filter((tarefa) => tarefa.naLixeira);
+
+        tarefasNaLixeira.forEach((tarefa) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            ${tarefa.id}. ${tarefa.descricao}
+            <button onclick="restaurarTarefa(${tarefa.id})">Restaurar</button>
+          `;
+          listaLixeira.appendChild(li);
+        });
+      }
+
+      function voltarParaTarefas() {
+        window.location.href = "index.html";
+      }
+
+      function main() {
+        console.log("Bem-vindo à página da Lixeira!");
+
+        const tarefasArmazenadas = localStorage.getItem("tarefas");
+
+        if (tarefasArmazenadas) {
+          tarefas = JSON.parse(tarefasArmazenadas);
+          exibirLixeira();
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>

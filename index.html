@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+    />
+    <title>Sistema de Gerenciamento de Tarefas</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        text-align: center;
+        background: rgb(48, 30, 103);
+        background: linear-gradient(
+          90deg,
+          rgba(48, 30, 103, 1) 0%,
+          rgba(182, 234, 218, 1) 100%
+        );
+        color: whitesmoke;
+      }
+
+      input,
+      button {
+        margin-bottom: 10px;
+      }
+
+      table {
+        width: 50%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: rgb(48, 30, 103);
+      }
+
+      button {
+        background-color: rgb(48, 30, 103);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      /* Estilos para o modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fefefe;
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        z-index: 1;
+      }
+
+      .modal input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .modal button {
+        background-color: rgb(48, 30, 103);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+
+      .close {
+        color: #888;
+        float: right;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      #iconeLixeira {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sistema de Gerenciamento de Tarefas</h1>
+
+    <form onsubmit="return false;">
+      <label for="descricao">Descrição da Tarefa:</label>
+      <input type="text" id="descricao" />
+      <button onclick="adicionarTarefa()">Adicionar Tarefa</button>
+    </form>
+
+    <button onclick="abrirModalFiltro()">Filtrar Tarefas</button>
+
+    <h2>Tarefas</h2>
+    <table id="tabelaTarefas">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descrição</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="listaTarefas"></tbody>
+    </table>
+
+    <!-- Modal de Filtro -->
+    <div id="modalFiltro" class="modal">
+      <span class="close" onclick="fecharModalFiltro()">&times;</span>
+      <h2 style="color: rgb(48, 30, 103)">O que deseja buscar?</h2>
+      <input type="text" id="termoBusca" placeholder="Digite aqui..." />
+      <button onclick="filtrarTarefas()">Filtrar</button>
+    </div>
+
+    <script>
+      let tarefas = [];
+
+      function adicionarTarefa() {
+        const descricao = document.getElementById("descricao").value;
+        if (descricao.trim() === "") {
+          alert("Por favor, digite uma descrição para a tarefa.");
+          return;
+        }
+
+        const novaTarefa = {
+          id: tarefas.length + 1,
+          descricao: descricao,
+          concluida: false,
+          dataCriacao: new Date(),
+        };
+        tarefas.push(novaTarefa);
+        exibirTarefas();
+        document.getElementById("descricao").value = "";
+
+        localStorage.setItem("tarefas", JSON.stringify(tarefas));
+      }
+
+      function marcarConcluida(id) {
+        const index = tarefas.findIndex((tarefa) => tarefa.id === id);
+        tarefas[index].concluida = !tarefas[index].concluida;
+        exibirTarefas();
+      }
+
+      function removerTarefa(id) {
+        tarefas = tarefas.filter((tarefa) => tarefa.id !== id);
+        exibirTarefas();
+      }
+
+      function limparTarefasConcluidas() {
+        tarefas = tarefas.filter((tarefa) => !tarefa.concluida);
+        exibirTarefas();
+      }
+
+      function abrirModalFiltro() {
+        const modal = document.getElementById("modalFiltro");
+        modal.style.display = "block";
+      }
+
+      function fecharModalFiltro() {
+        const modal = document.getElementById("modalFiltro");
+        modal.style.display = "none";
+      }
+
+      function filtrarTarefas() {
+        fecharModalFiltro();
+        const termoBusca = document.getElementById("termoBusca").value;
+        const tarefasFiltradas = tarefas.filter((tarefa) =>
+          tarefa.descricao.toLowerCase().includes(termoBusca.toLowerCase())
+        );
+        exibirTarefas(tarefasFiltradas);
+      }
+
+      function exibirTarefas(tarefasExibidas = tarefas) {
+        const listaTarefas = document.getElementById("listaTarefas");
+        listaTarefas.innerHTML = "";
+
+        tarefasExibidas.forEach((tarefa) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td>${tarefa.id}</td>
+                    <td>${tarefa.descricao}</td>
+                    <td>${tarefa.concluida ? "Concluída" : "Não Concluída"}</td>
+                    <td>
+                        <button onclick="marcarConcluida(${
+                          tarefa.id
+                        })">Marcar</button>
+                        <button onclick="removerTarefa(${
+                          tarefa.id
+                        })">Remover</button>
+                    </td>
+                `;
+          listaTarefas.appendChild(tr);
+        });
+      }
+
+      function main() {
+        console.log("Bem-vindo ao Sistema de Gerenciamento de Tarefas!");
+
+        const tarefasArmazenadas = localStorage.getItem("tarefas");
+
+        if (tarefasArmazenadas) {
+          tarefas = JSON.parse(tarefasArmazenadas);
+          exibirTarefas();
+        }
+      }
+
+      function irParaLixeira() {
+        window.location.href = "lixeira.html";
+      }
+
+      main();
+    </script>
+    <div id="iconeLixeira" onclick="irParaLixeira()">
+      <i class="bi bi-trash" style="font-size: 20px"></i>
+    </div>
+  </body>
+</html>
